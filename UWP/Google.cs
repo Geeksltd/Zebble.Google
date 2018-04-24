@@ -13,17 +13,19 @@
 
     public partial class Google
     {
-        const string REDIRECT_URI = "pw.oauth2:/oauth2redirect";
         const string AUTH_END_POINT = "https://accounts.google.com/o/oauth2/v2/auth";
         const string TOKEN_END_POINT = "https://www.googleapis.com/oauth2/v4/token";
         const string USER_INFO_END_POINT = "https://www.googleapis.com/oauth2/v3/userinfo";
 
-        static string ClientId;
+        static string ClientId, RedirectURI = "pw.oauth2:/oauth2redirect";
 
-        public static async Task SignIn(string clientId, string clientSecret)
+        public static async Task SignIn(string clientId, string applicationBundle = null)
         {
             try
             {
+                if (applicationBundle != null)
+                    RedirectURI = RedirectURI.Replace("pw.oauth2", applicationBundle);
+
                 ClientId = clientId;
 
                 string state = RandomDataBase64Url(32);
@@ -38,7 +40,7 @@
                 var authorizationRequest =
                     string.Format("{0}?response_type=code&scope=openid%20profile&redirect_uri={1}&client_id={2}&state={3}&code_challenge={4}&code_challenge_method={5}",
                     AUTH_END_POINT,
-                    Uri.EscapeDataString(REDIRECT_URI),
+                    Uri.EscapeDataString(RedirectURI),
                     clientId,
                     state,
                     codeChallenge,
@@ -157,7 +159,7 @@
                 // Builds the Token request
                 string tokenRequestBody = string.Format("code={0}&redirect_uri={1}&client_id={2}&code_verifier={3}&scope=&grant_type=authorization_code",
                     code,
-                    Uri.EscapeDataString(REDIRECT_URI),
+                    Uri.EscapeDataString(RedirectURI),
                     ClientId,
                     codeVerifier
                     );
