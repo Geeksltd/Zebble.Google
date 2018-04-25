@@ -28,10 +28,10 @@
 
                 ClientId = clientId;
 
-                string state = RandomDataBase64Url(32);
-                string codeVerifier = RandomDataBase64Url(32);
-                string codeChallenge = Base64UrlEncodeNoPadding(Sha256(codeVerifier));
-                const string codeChallengeMethod = "S256";
+                var state = RandomDataBase64Url(32);
+                var codeVerifier = RandomDataBase64Url(32);
+                var codeChallenge = Base64UrlEncodeNoPadding(Sha256(codeVerifier));
+                const string CODE_CHALLENGE_METHOD = "S256";
 
                 var localSettings = ApplicationData.Current.LocalSettings;
                 localSettings.Values["state"] = state;
@@ -44,7 +44,7 @@
                     clientId,
                     state,
                     codeChallenge,
-                    codeChallengeMethod);
+                    CODE_CHALLENGE_METHOD);
 
                 await Nav.ShowPopUp<GoogleUI>(new { Url = authorizationRequest });
             }
@@ -69,7 +69,7 @@
 
         internal static string Base64UrlEncodeNoPadding(IBuffer buffer)
         {
-            string base64 = CryptographicBuffer.EncodeToBase64String(buffer);
+            var base64 = CryptographicBuffer.EncodeToBase64String(buffer);
 
             // Converts base64 to base64url.
             base64 = base64.Replace("+", "-");
@@ -117,7 +117,7 @@
                 {
                     // Gets URI from navigation parameters.
                     var authorizationResponse = new Uri(args.Url);
-                    string queryString = authorizationResponse.Query;
+                    var queryString = authorizationResponse.Query;
 
                     var queryStringParams = queryString.Substring(1).Split('&')
                         .ToDictionary(c => c.Split('=')[0], c => Uri.UnescapeDataString(c.Split('=')[1]));
@@ -131,8 +131,8 @@
                     if (!queryStringParams.ContainsKey("code") || !queryStringParams.ContainsKey("state"))
                         return;
 
-                    string code = queryStringParams["code"];
-                    string incomingState = queryStringParams["state"];
+                    var code = queryStringParams["code"];
+                    var incomingState = queryStringParams["state"];
 
                     var localSettings = ApplicationData.Current.LocalSettings;
                     var expectedState = (string)localSettings.Values["state"];
@@ -142,7 +142,7 @@
 
                     localSettings.Values["state"] = null;
 
-                    string codeVerifier = (string)localSettings.Values["code_verifier"];
+                    var codeVerifier = (string)localSettings.Values["code_verifier"];
                     await PerformCodeExchangeAsync(code, codeVerifier);
                 }
                 else
@@ -157,7 +157,7 @@
             async Task PerformCodeExchangeAsync(string code, string codeVerifier)
             {
                 // Builds the Token request
-                string tokenRequestBody = string.Format("code={0}&redirect_uri={1}&client_id={2}&code_verifier={3}&scope=&grant_type=authorization_code",
+                var tokenRequestBody = string.Format("code={0}&redirect_uri={1}&client_id={2}&code_verifier={3}&scope=&grant_type=authorization_code",
                     code,
                     Uri.EscapeDataString(RedirectURI),
                     ClientId,
@@ -168,17 +168,17 @@
                 var handler = new HttpClientHandler { AllowAutoRedirect = true };
                 var client = new HttpClient(handler);
                 var response = await client.PostAsync(TOKEN_END_POINT, content);
-                string responseString = await response.Content.ReadAsStringAsync();
+                var responseString = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
                     return;
 
                 var tokens = JsonObject.Parse(responseString);
-                string accessToken = tokens.GetNamedString("access_token");
+                var accessToken = tokens.GetNamedString("access_token");
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
                 var userinfoResponse = await client.GetAsync(USER_INFO_END_POINT);
-                string userinfoResponseContent = await userinfoResponse.Content.ReadAsStringAsync();
+                var userinfoResponseContent = await userinfoResponse.Content.ReadAsStringAsync();
 
                 await Nav.HidePopUp();
                 await UserSignedIn.Raise(userinfoResponse);

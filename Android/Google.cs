@@ -13,7 +13,7 @@
         {
             UIRuntime.OnActivityResult.Handle(args =>
             {
-                if(args.Item1 == SIGNIN_REQUEST_CODE && args.Item2 == Android.App.Result.Ok)
+                if (args.Item1 == SIGNIN_REQUEST_CODE && args.Item2 == Android.App.Result.Ok)
                 {
                     UserSignedIn.Raise(args.Item3);
                 }
