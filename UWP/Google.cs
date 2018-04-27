@@ -5,11 +5,13 @@
     using System.Net.Http;
     using System.Text;
     using System.Threading.Tasks;
+    using Windows.ApplicationModel.Activation;
     using Windows.Data.Json;
     using Windows.Security.Cryptography;
     using Windows.Security.Cryptography.Core;
     using Windows.Storage;
     using Windows.Storage.Streams;
+    using Windows.UI.Xaml;
 
     public partial class Google
     {
@@ -17,16 +19,25 @@
         const string TOKEN_END_POINT = "https://www.googleapis.com/oauth2/v4/token";
         const string USER_INFO_END_POINT = "https://www.googleapis.com/oauth2/v3/userinfo";
 
-        static string ClientId, RedirectURI = "pw.oauth2:/oauth2redirect";
+        static string ClientId, RedirectURI = "zbl.oauth2:/oauth2redirect";
 
-        public static async Task SignIn(string clientId, string applicationBundle = null)
+        public static void Initilize(string clientId, string applicationBundle = null)
+        {
+            ClientId = clientId;
+
+            if (applicationBundle != null)
+                RedirectURI = RedirectURI.Replace("zbl.oauth2", applicationBundle);
+        }
+
+        public static async Task SignIn()
         {
             try
             {
-                if (applicationBundle != null)
-                    RedirectURI = RedirectURI.Replace("pw.oauth2", applicationBundle);
-
-                ClientId = clientId;
+                if (string.IsNullOrEmpty(ClientId))
+                {
+                    Device.Log.Error("Please set the ClientId by calling Initilize method first!");
+                    return;
+                }
 
                 var state = RandomDataBase64Url(32);
                 var codeVerifier = RandomDataBase64Url(32);
@@ -41,7 +52,7 @@
                     string.Format("{0}?response_type=code&scope=openid%20profile&redirect_uri={1}&client_id={2}&state={3}&code_challenge={4}&code_challenge_method={5}",
                     AUTH_END_POINT,
                     Uri.EscapeDataString(RedirectURI),
-                    clientId,
+                    ClientId,
                     state,
                     codeChallenge,
                     CODE_CHALLENGE_METHOD);
@@ -109,14 +120,36 @@
 
                 await Add(header);
                 await Add(browser);
+
+                UIRuntime.OnActivated.Handle(args => OnNavigatingTo(args));
             }
 
             public async Task OnNavigating(WebView.NavigatingEventArgs args)
             {
                 if (args.Url != null && args.Url != "")
                 {
+                    if (args.Url.Contains("www.google.com"))
+                    {
+                        await Nav.HidePopUp();
+                        await Task.CompletedTask;
+                    }
+                }
+                else
+                {
+                    Device.Log.Message(args.Url);
+
+                    await Nav.HidePopUp();
+                    await Task.CompletedTask;
+                }
+            }
+
+            async Task OnNavigatingTo(Tuple<IActivatedEventArgs, Window> args)
+            {
+                var protocol = args.Item1 as ProtocolActivatedEventArgs;
+                if (protocol != null && protocol.Uri != null)
+                {
                     // Gets URI from navigation parameters.
-                    var authorizationResponse = new Uri(args.Url);
+                    var authorizationResponse = protocol.Uri;
                     var queryString = authorizationResponse.Query;
 
                     var queryStringParams = queryString.Substring(1).Split('&')
@@ -147,7 +180,7 @@
                 }
                 else
                 {
-                    Device.Log.Message(args.Url);
+                    Device.Log.Message(protocol.Uri.AbsoluteUri);
 
                     await Nav.HidePopUp();
                     await Task.CompletedTask;

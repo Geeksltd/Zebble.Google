@@ -2,10 +2,13 @@
 {
     using Foundation;
     using System;
+    using System.Threading.Tasks;
     using UIKit;
 
-    public partial class Google : global::Google.SignIn.ISignInDelegate, global::Google.SignIn.ISignInUIDelegate
+    public static partial class Google
     {
+        static string ClientId;
+
         static Google()
         {
             UIRuntime.OnOpenUrlWithOptions.Handle((Tuple<UIApplication, NSUrl, NSDictionary> args) =>
@@ -15,20 +18,41 @@
             });
         }
 
-        public IntPtr Handle => (UIRuntime.NativeRootScreen as UIViewController).Handle;
-
-        public void SignIn(string clientId)
+        public static void Initilize(string clientId)
         {
-            global::Google.SignIn.SignIn.SharedInstance.ClientID = clientId;
-            global::Google.SignIn.SignIn.SharedInstance.UIDelegate = this;
-            global::Google.SignIn.SignIn.SharedInstance.Delegate = this;
-            global::Google.SignIn.SignIn.SharedInstance.SignInUser();
+            ClientId = clientId;
         }
+
+        public static async Task SignIn()
+        {
+            if (string.IsNullOrEmpty(ClientId))
+            {
+                Device.Log.Error("Please set the ClientId by calling Initilize method first!");
+                return;
+            }
+
+            var googleSignIn = new GoogleSignIn();
+            googleSignIn.DidUserSigneIn.Handle(userInfo => UserSignedIn.Raise(userInfo));
+
+            global::Google.SignIn.SignIn.SharedInstance.ClientID = ClientId;
+            global::Google.SignIn.SignIn.SharedInstance.UIDelegate = googleSignIn;
+            global::Google.SignIn.SignIn.SharedInstance.Delegate = googleSignIn;
+            global::Google.SignIn.SignIn.SharedInstance.SignInUser();
+
+            await Task.CompletedTask;
+        }
+    }
+
+    internal class GoogleSignIn : global::Google.SignIn.ISignInDelegate, global::Google.SignIn.ISignInUIDelegate
+    {
+        public readonly AsyncEvent<object> DidUserSigneIn = new AsyncEvent<object>();
+
+        public IntPtr Handle => (UIRuntime.NativeRootScreen as UIViewController).Handle;
 
         public void DidSignIn(global::Google.SignIn.SignIn signIn, global::Google.SignIn.GoogleUser user, NSError error)
         {
             if (user != null && error == null)
-                UserSignedIn.Raise(user);
+                DidUserSigneIn.Raise(user);
             else
                 Device.Log.Error(error);
         }
