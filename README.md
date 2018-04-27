@@ -36,7 +36,7 @@ Finally, in android MainActivity add this code like below:
 Zebble.Google.Initialize();
 ```
 
-So, your MainActivity will looks like this:
+So, your **MainActivity** will looks like this:
 ```csharp
 protected override async void OnCreate(Bundle bundle)
 {
@@ -56,11 +56,22 @@ Then you can use `Zebble.Google.SignIn()` method whereever you need to show the 
 
 In IOS platform you need to create a credentials and use your clientId to sign in to the google account and get user information like below:
 
-```csharp
-var googleSignIn = new Zebble.Google();
-googleSignIn.SignIn("Your Client ID");
-```
+**AppDelegate.cs**
 
+```csharp
+protected override async Task Initialize()
+{
+    ...
+
+    Zebble.Google.Initialize("Your Client ID");
+
+    ...
+}
+```
+Then you can sign in by google account like below:
+```csharp
+await Zebble.Google.SignIn();
+```
 Also, you need to add some URL types into the `Info.plist` file like below:
 ```xml
 <key>CFBundleURLTypes</key>
@@ -78,11 +89,43 @@ Also, you need to add some URL types into the `Info.plist` file like below:
 
 #### UWP
 
-In this platform you should create a new credentials with client secret and then call sign in method like below:
+In this platform you should create a new credentials with client secret and then call `Zebble.Google.SignIn`:
 ```csharp
-await Zebble.Google.SignIn("Your Client ID","Your Client Secret");
+Zebble.Google.Initialize("Your Client ID","Your application protocol name");
 ```
 
+So, your **Program.cs** will looks like below:
+```csharp
+public static void Main()
+{
+    ...
+
+    Zebble.Google.Initilize("Your Client ID","Your application protocol name");
+
+    ...
+}
+```
+Finally, you can call sign in method to sign in with google:
+```csharp
+await Zebble.Google.SignIn();
+```
+
+##### UWP credentials instruction:
+
+1. Visit the [Credentials page of the Developers Console](https://console.developers.google.com/apis/credentials?project=_)
+2. Create a new OAuth 2.0 client, select `iOS` (yes, it's a little strange to
+   select iOS, but the way the OAuth client works with UWP is similar to iOS, 
+   so this is currently the correct client type to create).
+3. As your bundle ID, enter your domain name in reverse DNS notation. E.g.
+   if your domain was "example.com", use "com.example" as your bundle ID.
+   Note that your bundle ID MUST contain a period character `.`, and MUST be
+   less than 39 characters long
+4. Copy the created client-id and replace the clientID value in this sample
+5. Edit the manifest by right-clicking and selecting "View Code" (due to a
+   limitation of Visual Studio it wasn't possible to declare a URI scheme
+   containing a period in the UI).
+6. Find the "Protocol" scheme, and replace it with the bundle id you registered
+   in step 3. (e.g. "com.example")
 <br>
 
 
@@ -98,5 +141,7 @@ await Zebble.Google.SignIn("Your Client ID","Your Client Secret");
 ### Methods
 | Method       | Return Type  | Parameters                          | Android | iOS | Windows |
 | :----------- | :----------- | :-----------                        | :------ | :-- | :------ |
-| Initilize         | void| -| x       |    |        |
-| SignIn     | Task| clientId -> string<br> clientSecret -> string <br>| x       | x   | x       |
+| Initilize         | void| clientId -> string<br>, applicationBundle -> string |        |    |    x    |
+| Initilize         | void| clientId -> string<br> |        |  x  |        |
+| Initilize         | void| - |   x     |    |        |
+| SignIn     | Task| -| x       | x   | x       |
