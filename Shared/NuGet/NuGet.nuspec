@@ -13,10 +13,11 @@
     <dependencies>
       <group targetFramework="MonoAndroid10">
         <dependency id="Xamarin.GooglePlayServices.Auth" version="60.1142.1"></dependency>
+        <dependency id="Xamarin.GooglePlayServices.Drive" version="60.1142.1"></dependency>
         <dependency id="Zebble.WebView" version="4.2.239"></dependency>
       </group>
       <group targetFramework="Xamarin.iOS10">
-        <dependency id="Xamarin.Google.iOS.SignIn" version="4.1.1"></dependency>
+        <dependency id="Xamarin.Google.iOS.SignIn" version="4.1.1.1"></dependency>
         <dependency id="Zebble.WebView" version="4.2.239"></dependency>
       </group>
       <group targetFramework="UAP10">
