@@ -43,11 +43,9 @@
         }
     }
 
-    internal class GoogleSignIn : global::Google.SignIn.ISignInDelegate, global::Google.SignIn.ISignInUIDelegate
+    internal class GoogleSignIn : UIViewController, global::Google.SignIn.ISignInDelegate, global::Google.SignIn.ISignInUIDelegate
     {
         public readonly AsyncEvent<object> DidUserSigneIn = new AsyncEvent<object>();
-
-        public IntPtr Handle => (UIRuntime.NativeRootScreen as UIViewController).Handle;
 
         public void DidSignIn(global::Google.SignIn.SignIn signIn, global::Google.SignIn.GoogleUser user, NSError error)
         {
