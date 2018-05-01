@@ -10,7 +10,7 @@
         const int SIGNIN_REQUEST_CODE = 9001;
         static GoogleApiClient ApiClient;
 
-        static Google()
+        public static void Initialize()
         {
             UIRuntime.OnActivityResult.Handle(args =>
             {
@@ -19,10 +19,7 @@
                     UserSignedIn.Raise(args.Item3);
                 }
             });
-        }
 
-        public static void Initilize()
-        {
             var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn).RequestProfile().Build();
             ApiClient = new GoogleApiClient.Builder(UIRuntime.CurrentActivity)
                 .AddApi(Auth.GOOGLE_SIGN_IN_API, gso)
