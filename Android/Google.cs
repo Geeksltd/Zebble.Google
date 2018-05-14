@@ -16,7 +16,19 @@
             {
                 if (args.Item1 == SIGNIN_REQUEST_CODE && args.Item2 == Android.App.Result.Ok)
                 {
-                    UserSignedIn.Raise(args.Item3);
+                    var result = Auth.GoogleSignInApi.GetSignInResultFromIntent(args.Item3);
+                    if (result.IsSuccess)
+                    {
+                        var account = result.SignInAccount;
+                        UserSignedIn.Raise(new GoogleUser
+                        {
+                            FamilyName = account.FamilyName,
+                            GivenName = account.GivenName,
+                            Id = account.Id,
+                            Name = account.DisplayName,
+                            Picture = account.PhotoUrl.ToString()
+                        });
+                    }
                 }
             });
 

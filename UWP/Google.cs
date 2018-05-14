@@ -1,5 +1,7 @@
 ﻿namespace Zebble
 {
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Linq;
     using System.Net.Http;
@@ -214,7 +216,15 @@
                 var userinfoResponseContent = await userinfoResponse.Content.ReadAsStringAsync();
 
                 await Nav.HidePopUp();
-                await UserSignedIn.Raise(userinfoResponse);
+                var account = JsonConvert.DeserializeObject<JObject>(userinfoResponseContent);
+                await UserSignedIn.Raise(new GoogleUser
+                {
+                    FamilyName = account["family_name"].Value<string>(),
+                    GivenName = account["given_name"].Value<string>(),
+                    Name = account["name"].Value<string>(),
+                    Id = account["sub"].Value<string>(),
+                    Picture = account["picture"].Value<string>()
+                });
             }
         }
     }

@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Google.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GoogleUser.cs" />
   </ItemGroup>
 </Project>

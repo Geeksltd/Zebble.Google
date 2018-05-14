@@ -1,6 +1,8 @@
 ﻿namespace Zebble
 {
     using Foundation;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Threading.Tasks;
     using UIKit;
@@ -41,8 +43,16 @@
 
                     var request = new Xamarin.Auth.OAuth2Request("GET", new Uri(USER_INFO_END_POINT), null, args.Account);
                     var response = await request.GetResponseAsync();
-                    var account = await response.GetResponseTextAsync();
-                    await UserSignedIn.Raise(account);
+                    var accountStr = await response.GetResponseTextAsync();
+                    var account = JsonConvert.DeserializeObject<JObject>(accountStr);
+                    await UserSignedIn.Raise(new GoogleUser
+                    {
+                        FamilyName = account["family_name"].Value<string>(),
+                        GivenName = account["given_name"].Value<string>(),
+                        Name = account["name"].Value<string>(),
+                        Id = account["sub"].Value<string>(),
+                        Picture = account["picture"].Value<string>()
+                    });
                 }
             };
         }

@@ -2,6 +2,6 @@
 {
     public partial class Google
     {
-        public static readonly AsyncEvent<object> UserSignedIn = new AsyncEvent<object>();
+        public static readonly AsyncEvent<GoogleUser> UserSignedIn = new AsyncEvent<GoogleUser>();
     }
 }
