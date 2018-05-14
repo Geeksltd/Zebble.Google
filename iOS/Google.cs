@@ -37,12 +37,12 @@
             {
                 if (args.IsAuthenticated)
                 {
+                    UI.DismissViewController(true, null);
+
                     var request = new Xamarin.Auth.OAuth2Request("GET", new Uri(USER_INFO_END_POINT), null, args.Account);
                     var response = await request.GetResponseAsync();
                     var account = await response.GetResponseTextAsync();
                     await UserSignedIn.Raise(account);
-
-                    UI.DismissViewController(true, null);
                 }
             };
         }
