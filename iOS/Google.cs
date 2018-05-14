@@ -7,54 +7,56 @@
 
     public static partial class Google
     {
-        static string ClientId;
+        const string AUTH_END_POINT = "https://accounts.google.com/o/oauth2/v2/auth";
+        const string TOKEN_END_POINT = "https://www.googleapis.com/oauth2/v4/token";
+        const string USER_INFO_END_POINT = "https://www.googleapis.com/oauth2/v3/userinfo";
+
+        internal static Xamarin.Auth.OAuth2Authenticator Auth;
+        internal static UIViewController UI;
 
         static Google()
         {
             UIRuntime.OnOpenUrlWithOptions.Handle((Tuple<UIApplication, NSUrl, NSDictionary> args) =>
             {
-                var openUrlOptions = new UIApplicationOpenUrlOptions(args.Item3);
-                global::Google.SignIn.SignIn.SharedInstance.HandleUrl(args.Item2, openUrlOptions.SourceApplication, openUrlOptions.Annotation);
+                Auth.OnPageLoading(new Uri(args.Item2.AbsoluteString));
             });
         }
 
         public static void Initilize(string clientId)
         {
-            ClientId = clientId;
-        }
-
-        public static async Task SignIn()
-        {
-            if (string.IsNullOrEmpty(ClientId))
+            if (string.IsNullOrEmpty(clientId))
             {
                 Device.Log.Error("Please set the ClientId by calling Initilize method first!");
                 return;
             }
 
-            var googleSignIn = new GoogleSignIn();
-            googleSignIn.DidUserSigneIn.Handle(userInfo => UserSignedIn.Raise(userInfo));
+            Auth = new Xamarin.Auth.OAuth2Authenticator(clientId, "", "openid profile", new Uri(AUTH_END_POINT),
+            new Uri($"com.googleusercontent.apps.{clientId.Replace(".apps.googleusercontent.com", "")}:/oauth2redirect"), new Uri(TOKEN_END_POINT), null, true);
 
-            global::Google.SignIn.SignIn.SharedInstance.ClientID = ClientId;
-            global::Google.SignIn.SignIn.SharedInstance.UIDelegate = googleSignIn;
-            global::Google.SignIn.SignIn.SharedInstance.Delegate = googleSignIn;
-            global::Google.SignIn.SignIn.SharedInstance.SignInUser();
+            Auth.Completed += async (s, args) =>
+            {
+                if (args.IsAuthenticated)
+                {
+                    var request = new Xamarin.Auth.OAuth2Request("GET", new Uri(USER_INFO_END_POINT), null, args.Account);
+                    var response = await request.GetResponseAsync();
+                    var account = await response.GetResponseTextAsync();
+                    await UserSignedIn.Raise(account);
 
-            await Task.CompletedTask;
+                    UI.DismissViewController(true, null);
+                }
+            };
         }
-    }
 
-    internal class GoogleSignIn : UIViewController, global::Google.SignIn.ISignInDelegate, global::Google.SignIn.ISignInUIDelegate
-    {
-        public readonly AsyncEvent<object> DidUserSigneIn = new AsyncEvent<object>();
-
-        public void DidSignIn(global::Google.SignIn.SignIn signIn, global::Google.SignIn.GoogleUser user, NSError error)
+        public static Task SignIn()
         {
-            if (user != null && error == null)
-                DidUserSigneIn.Raise(user);
-            else
-                Device.Log.Error(error);
+            return Thread.UI.Run(() =>
+            {
+                if (UIRuntime.NativeRootScreen is UIViewController controller)
+                {
+                    UI = Auth.GetUI();
+                    controller.PresentViewController(UI, true, null);
+                }
+            });
         }
-
-        public void Dispose() { }
     }
 }
