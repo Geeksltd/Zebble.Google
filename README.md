@@ -24,6 +24,38 @@ A Zebble plugin for signing with Google.
 
 ### Api Usage
 Call `Zebble.Google.SignIn` from any project to gain access to APIs.
+
+```csharp
+public override async Task OnInitializing()
+{
+    await base.OnInitializing();
+
+    await Zebble.Google.SignIn();
+}
+```
+Then you can get the user information by handling the `UserSignedIn` event like below:
+
+```csharp
+Google.UserSignedIn.Handle(user =>
+{
+    //user.GivenName
+    //...
+});
+```
+
+The `UserSignedIn` has an argument which is an instance of `Zebble.Google.User` object which contains these properties:
+```csharp
+public class User
+{
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string GivenName { get; set; }
+    public string FamilyName { get; set; }
+    public string Picture { get; set; }
+    public string Email { get; }
+}
+```
+
 <br>
 
 ### Platform Specific Notes
@@ -132,7 +164,7 @@ await Zebble.Google.SignIn();
 ### Events
 | Event             | Type                                          | Android | iOS | Windows |
 | :-----------      | :-----------                                  | :------ | :-- | :------ |
-| UserSignedIn            | AsyncEvent<object&gt;  | x       | x   | x       |
+| UserSignedIn            | AsyncEvent<Zebble.Google.User&gt;  | x       | x   | x       |
 
 
 <br>
