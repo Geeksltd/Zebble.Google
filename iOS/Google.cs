@@ -21,6 +21,7 @@
             UIRuntime.OnOpenUrlWithOptions.Handle((Tuple<UIApplication, NSUrl, NSDictionary> args) =>
             {
                 Auth.OnPageLoading(new Uri(args.Item2.AbsoluteString));
+                UI.DismissViewController(true, null);
             });
         }
 
@@ -33,14 +34,13 @@
             }
 
             Auth = new Xamarin.Auth.OAuth2Authenticator(clientId, "", "openid profile", new Uri(AUTH_END_POINT),
-            new Uri($"com.googleusercontent.apps.{clientId.Replace(".apps.googleusercontent.com", "")}:/oauth2redirect"), new Uri(TOKEN_END_POINT), null, true);
+            new Uri($"com.googleusercontent.apps.{clientId.Replace(".apps.googleusercontent.com", "")}:/oauth2redirect"), new Uri(TOKEN_END_POINT), null, true)
+            { AllowCancel = true };
 
             Auth.Completed += async (s, args) =>
             {
                 if (args.IsAuthenticated)
                 {
-                    UI.DismissViewController(true, null);
-
                     var request = new Xamarin.Auth.OAuth2Request("GET", new Uri(USER_INFO_END_POINT), null, args.Account);
                     var response = await request.GetResponseAsync();
                     var accountStr = await response.GetResponseTextAsync();
