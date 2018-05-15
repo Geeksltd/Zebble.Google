@@ -20,7 +20,7 @@
                     if (result.IsSuccess)
                     {
                         var account = result.SignInAccount;
-                        UserSignedIn.Raise(new GoogleUser
+                        UserSignedIn.Raise(new Google.User
                         {
                             FamilyName = account.FamilyName,
                             GivenName = account.GivenName,

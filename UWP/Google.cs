@@ -217,7 +217,7 @@
 
                 await Nav.HidePopUp();
                 var account = JsonConvert.DeserializeObject<JObject>(userinfoResponseContent);
-                await UserSignedIn.Raise(new GoogleUser
+                await UserSignedIn.Raise(new Google.User
                 {
                     FamilyName = account["family_name"].Value<string>(),
                     GivenName = account["given_name"].Value<string>(),

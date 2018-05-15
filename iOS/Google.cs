@@ -45,7 +45,7 @@
                     var response = await request.GetResponseAsync();
                     var accountStr = await response.GetResponseTextAsync();
                     var account = JsonConvert.DeserializeObject<JObject>(accountStr);
-                    await UserSignedIn.Raise(new GoogleUser
+                    await UserSignedIn.Raise(new Google.User
                     {
                         FamilyName = account["family_name"].Value<string>(),
                         GivenName = account["given_name"].Value<string>(),
