@@ -51,7 +51,7 @@
                 localSettings.Values["code_verifier"] = codeVerifier;
 
                 var authorizationRequest =
-                    string.Format("{0}?response_type=code&scope=openid%20profile&redirect_uri={1}&client_id={2}&state={3}&code_challenge={4}&code_challenge_method={5}",
+                    string.Format("{0}?response_type=code&scope=openid%20profile%20email&redirect_uri={1}&client_id={2}&state={3}&code_challenge={4}&code_challenge_method={5}",
                     AUTH_END_POINT,
                     Uri.EscapeDataString(RedirectURI),
                     ClientId,
@@ -221,6 +221,7 @@
                 {
                     FamilyName = account["family_name"].Value<string>(),
                     GivenName = account["given_name"].Value<string>(),
+                    Email = account["email"].Value<string>(),
                     Name = account["name"].Value<string>(),
                     Id = account["sub"].Value<string>(),
                     Picture = account["picture"].Value<string>(),

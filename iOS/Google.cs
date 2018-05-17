@@ -33,7 +33,7 @@
                 return;
             }
 
-            Auth = new Xamarin.Auth.OAuth2Authenticator(clientId, "", "openid profile", new Uri(AUTH_END_POINT),
+            Auth = new Xamarin.Auth.OAuth2Authenticator(clientId, "", "openid profile email", new Uri(AUTH_END_POINT),
             new Uri($"com.googleusercontent.apps.{clientId.Replace(".apps.googleusercontent.com", "")}:/oauth2redirect"), new Uri(TOKEN_END_POINT), null, true)
             { AllowCancel = true };
 
@@ -49,6 +49,7 @@
                     {
                         FamilyName = account["family_name"].Value<string>(),
                         GivenName = account["given_name"].Value<string>(),
+                        Email = account["email"].Value<string>(),
                         Name = account["name"].Value<string>(),
                         Id = account["sub"].Value<string>(),
                         Picture = account["picture"].Value<string>(),
