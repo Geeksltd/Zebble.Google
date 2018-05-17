@@ -209,7 +209,7 @@
                     return;
 
                 var tokens = JsonObject.Parse(responseString);
-                var accessToken = tokens.GetNamedString("access_token");
+                var accessToken = tokens.GetNamedString("id_token");
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
                 var userinfoResponse = await client.GetAsync(USER_INFO_END_POINT);

@@ -52,7 +52,7 @@
                         Name = account["name"].Value<string>(),
                         Id = account["sub"].Value<string>(),
                         Picture = account["picture"].Value<string>(),
-                        Token = args.Account.Properties["access_token"] ?? ""
+                        Token = args.Account.Properties["id_token"] ?? ""
                     });
                 }
             };
