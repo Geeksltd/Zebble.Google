@@ -26,7 +26,9 @@
                             GivenName = account.GivenName,
                             Id = account.Id,
                             Name = account.DisplayName,
-                            Picture = account.PhotoUrl.ToString()
+                            Picture = account.PhotoUrl.ToString(),
+                            Email = account.Email,
+                            Token = account.IdToken
                         });
                     }
                 }

@@ -51,7 +51,8 @@
                         GivenName = account["given_name"].Value<string>(),
                         Name = account["name"].Value<string>(),
                         Id = account["sub"].Value<string>(),
-                        Picture = account["picture"].Value<string>()
+                        Picture = account["picture"].Value<string>(),
+                        Token = args.Account.Properties["access_token"] ?? ""
                     });
                 }
             };
