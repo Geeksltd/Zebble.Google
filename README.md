@@ -53,6 +53,7 @@ public class User
     public string FamilyName { get; set; }
     public string Picture { get; set; }
     public string Email { get; }
+    public string Token { get; }
 }
 ```
 
