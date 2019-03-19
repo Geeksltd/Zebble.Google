@@ -34,7 +34,21 @@
                 }
             });
 
-            var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn).RequestProfile().Build();
+            var context = UIRuntime.CurrentActivity;
+            var serverClientIdStr = context.Resources.GetIdentifier("server_client_id", "string", context.PackageName);
+            if(serverClientIdStr == 0)
+            {
+                Device.Log.Error("Google Client ID is not set on Android application. Please add server_client_id to the resource string file.");
+                return;
+            }
+
+            var clientId = context.GetString(serverClientIdStr);
+            var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
+                .RequestEmail()
+                .RequestProfile()
+                .RequestIdToken(serverClientId: clientId)
+                .Build();
+
             ApiClient = new GoogleApiClient.Builder(UIRuntime.CurrentActivity)
                 .AddApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .AddConnectionCallbacks(connectedCallback: bundle =>
