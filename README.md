@@ -64,6 +64,10 @@ Some platforms require some setting to make you able to use this plugin.
 
 #### Android
 First of all, you need to create a project by refering to https://console.developers.google.com and create your credentials for accessing Google Plus and enableing the Google API and download the "google-services.json" file and paste it to the root of Android project, then, set the Build Action property of it to "GoogleServiceJSON".
+Secoundly, add the folowing resource into your **strings.xml** file:
+```xml
+<string name="server_client_id">PASTE HERE YOU CLIENT-ID<string>
+```
 Finally, in android MainActivity add this code like below:
 ```csharp
 Zebble.Google.Initialize();
