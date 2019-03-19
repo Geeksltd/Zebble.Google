@@ -6,7 +6,7 @@
     <title>Google SignIn</title>
     <projectUrl>https://github.com/Geeksltd/Zebble.Google</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/Geeksltd/Zebble.Google/master/Shared/NuGet/Icon.png</iconUrl>
-    <copyright>Copyright © 2018 Geeks Ltd - All rights reserved.</copyright>
+    <copyright>Copyright © 2019 Geeks Ltd - All rights reserved.</copyright>
     <description>Google SignIn for Zebble (Xamarin)</description>
     <authors>Geeks Ltd</authors>
     <owners>Geeks Ltd</owners>
@@ -28,10 +28,10 @@
   <files>
     <file src="..\..\lib\Zebble.Google.iOS.*" target="lib\Xamarin.iOS10\" />
     <file src="..\..\lib\Zebble.Google.Android.*" target="lib\MonoAndroid10\" />
-    <file src="..\..\lib\bin\ARM\Release\Zebble.Google.UWP.*" target="runtimes\win10-arm\lib\uap10.0" />
+    <file src="..\..\lib\Zebble.Google.UWP.*" target="lib\UAP10\" />
+    <!--<file src="..\..\lib\bin\ARM\Release\Zebble.Google.UWP.*" target="runtimes\win10-arm\lib\uap10.0" />
     <file src="..\..\lib\bin\x64\Release\Zebble.Google.UWP.*" target="runtimes\win10-x64\lib\uap10.0" />
     <file src="..\..\lib\bin\x86\Release\Zebble.Google.UWP.*" target="runtimes\win10-x86\lib\uap10.0" />
-
-    <file src="..\..\lib\bin\Release\Zebble.Google.UWP.*" target="ref\uap10.0" />
+    <file src="..\..\lib\bin\Release\Zebble.Google.UWP.*" target="ref\uap10.0" />-->
   </files>
 </package>
