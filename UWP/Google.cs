@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using Windows.ApplicationModel.Activation;
     using Windows.Data.Json;
+    using Windows.Security.Authentication.Web;
     using Windows.Security.Cryptography;
     using Windows.Security.Cryptography.Core;
     using Windows.Storage;
@@ -29,6 +30,8 @@
 
             if (applicationBundle != null)
                 RedirectURI = RedirectURI.Replace("zbl.oauth2", applicationBundle);
+
+            UIRuntime.OnActivated.Handle(OnNavigatingTo);
         }
 
         public static async Task SignIn()
@@ -59,7 +62,7 @@
                     codeChallenge,
                     CODE_CHALLENGE_METHOD);
 
-                await Nav.ShowPopUp<GoogleUI>(new { Url = authorizationRequest });
+                await Windows.System.Launcher.LaunchUriAsync(new Uri(authorizationRequest));
             }
             catch (Exception ex)
             {
@@ -93,140 +96,89 @@
             return base64;
         }
 
-        internal class GoogleUI : Page
+        internal static async Task OnNavigatingTo(Tuple<IActivatedEventArgs, Window> args)
         {
-            public override async Task OnInitializing()
+            var protocol = args.Item1 as ProtocolActivatedEventArgs;
+            if (protocol != null && protocol.Uri != null)
             {
-                await base.OnInitializing();
+                var authorizationResponse = protocol.Uri;
+                var queryString = authorizationResponse.Query;
 
-                this.Width(Root.ActualWidth - 50).Height(Root.ActualHeight - 70).Margin(top: 20).Background(color: Colors.White);
+                var queryStringParams = queryString.Substring(1).Split('&')
+                    .ToDictionary(c => c.Split('=')[0], c => Uri.UnescapeDataString(c.Split('=')[1]));
 
-                var header = new Stack { Direction = RepeatDirection.Horizontal };
-
-                var title = new TextView { Text = "GoogleSignIn" };
-                title.Padding(all: 5).Border(bottom: 1, color: Colors.Silver).Width(100.Percent());
-
-                var closeBtn = new Button { Text = "x" };
-                closeBtn.TextColor(Colors.Gray).Width(20).Height(20);
-                closeBtn.Tapped.Handle(() => Nav.HidePopUp());
-
-                await header.Add(title);
-                await header.Add(closeBtn);
-
-                var authorizationRequest = Nav.Param<string>("Url");
-                var browser = new WebView(authorizationRequest);
-                browser.Width(100.Percent()).Height(100.Percent()).Margin(top: title.ActualHeight);
-                browser.BrowserNavigating.Handle(args => OnNavigating(args));
-
-                header.Height.BindTo(title.Height);
-
-                await Add(header);
-                await Add(browser);
-
-                UIRuntime.OnActivated.Handle(args => OnNavigatingTo(args));
-            }
-
-            public async Task OnNavigating(WebView.NavigatingEventArgs args)
-            {
-                if (args.Url != null && args.Url != "")
-                {
-                    if (args.Url.Contains("www.google.com"))
-                    {
-                        await Nav.HidePopUp();
-                        await Task.CompletedTask;
-                    }
-                }
-                else
-                {
-                    Device.Log.Message(args.Url);
-
-                    await Nav.HidePopUp();
-                    await Task.CompletedTask;
-                }
-            }
-
-            async Task OnNavigatingTo(Tuple<IActivatedEventArgs, Window> args)
-            {
-                var protocol = args.Item1 as ProtocolActivatedEventArgs;
-                if (protocol != null && protocol.Uri != null)
-                {
-                    // Gets URI from navigation parameters.
-                    var authorizationResponse = protocol.Uri;
-                    var queryString = authorizationResponse.Query;
-
-                    var queryStringParams = queryString.Substring(1).Split('&')
-                        .ToDictionary(c => c.Split('=')[0], c => Uri.UnescapeDataString(c.Split('=')[1]));
-
-                    if (queryStringParams.ContainsKey("error"))
-                    {
-                        await Nav.HidePopUp();
-                        return;
-                    }
-
-                    if (!queryStringParams.ContainsKey("code") || !queryStringParams.ContainsKey("state"))
-                        return;
-
-                    var code = queryStringParams["code"];
-                    var incomingState = queryStringParams["state"];
-
-                    var localSettings = ApplicationData.Current.LocalSettings;
-                    var expectedState = (string)localSettings.Values["state"];
-
-                    if (incomingState != expectedState)
-                        return;
-
-                    localSettings.Values["state"] = null;
-
-                    var codeVerifier = (string)localSettings.Values["code_verifier"];
-                    await PerformCodeExchangeAsync(code, codeVerifier);
-                }
-                else
-                {
-                    Device.Log.Message(protocol.Uri.AbsoluteUri);
-
-                    await Nav.HidePopUp();
-                    await Task.CompletedTask;
-                }
-            }
-
-            async Task PerformCodeExchangeAsync(string code, string codeVerifier)
-            {
-                // Builds the Token request
-                var tokenRequestBody = string.Format("code={0}&redirect_uri={1}&client_id={2}&code_verifier={3}&scope=&grant_type=authorization_code",
-                    code,
-                    Uri.EscapeDataString(RedirectURI),
-                    ClientId,
-                    codeVerifier
-                    );
-
-                var content = new StringContent(tokenRequestBody, Encoding.UTF8, "application/x-www-form-urlencoded");
-                var handler = new HttpClientHandler { AllowAutoRedirect = true };
-                var client = new HttpClient(handler);
-                var response = await client.PostAsync(TOKEN_END_POINT, content);
-                var responseString = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
+                if (queryStringParams.ContainsKey("error"))
                     return;
 
-                var tokens = JsonObject.Parse(responseString);
-                var accessToken = tokens.GetNamedString("id_token");
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                if (!queryStringParams.ContainsKey("code") || !queryStringParams.ContainsKey("state"))
+                    return;
 
-                var userinfoResponse = await client.GetAsync(USER_INFO_END_POINT);
+                var code = queryStringParams["code"];
+                var incomingState = queryStringParams["state"];
+
+                var localSettings = ApplicationData.Current.LocalSettings;
+                var expectedState = (string)localSettings.Values["state"];
+
+                if (incomingState != expectedState)
+                    return;
+
+                localSettings.Values["state"] = null;
+
+                var codeVerifier = (string)localSettings.Values["code_verifier"];
+
+                await PerformCodeExchangeAsync(code, codeVerifier);
+            }
+            else
+            {
+                Device.Log.Message(protocol.Uri.AbsoluteUri);
+                await Task.CompletedTask;
+            }
+        }
+
+        internal static async Task<string> GetAccessToken(string code, string codeVerifier)
+        {
+            var content = new StringContent($"code={code}&redirect_uri={Uri.EscapeDataString(RedirectURI)}&client_id={ClientId}&code_verifier={codeVerifier}&grant_type=authorization_code",
+                                          Encoding.UTF8, "application/x-www-form-urlencoded");
+
+            using (var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true }))
+            {
+                var response = await httpClient.PostAsync(TOKEN_END_POINT, content);
+                string responseString = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Device.Log.Error("Authorization code exchange failed.");
+                    return null;
+                }
+
+                JsonObject tokens = JsonObject.Parse(responseString);
+                return tokens.GetNamedString("access_token");
+            }
+        }
+
+        internal static async Task PerformCodeExchangeAsync(string code, string codeVerifier)
+        {
+            var accessToken = await GetAccessToken(code, codeVerifier);
+
+            using (var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true }))
+            {
+                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+                var userinfoResponse = await httpClient.GetAsync(USER_INFO_END_POINT);
                 var userinfoResponseContent = await userinfoResponse.Content.ReadAsStringAsync();
 
-                await Nav.HidePopUp();
                 var account = JsonConvert.DeserializeObject<JObject>(userinfoResponseContent);
-                await UserSignedIn.Raise(new Google.User
+                var user = new User { Token = accessToken };
+                if (!userinfoResponseContent.Contains("error"))
                 {
-                    FamilyName = account["family_name"].Value<string>(),
-                    GivenName = account["given_name"].Value<string>(),
-                    Email = account["email"].Value<string>(),
-                    Name = account["name"].Value<string>(),
-                    Id = account["sub"].Value<string>(),
-                    Picture = account["picture"].Value<string>(),
-                    Token = accessToken
-                });
+                    user.FamilyName = account["family_name"].Value<string>();
+                    user.GivenName = account["given_name"].Value<string>();
+                    user.Email = account["email"].Value<string>();
+                    user.Name = account["name"].Value<string>();
+                    user.Id = account["sub"].Value<string>();
+                    user.Picture = account["picture"].Value<string>();
+                }
+                await UserSignedIn.Raise(user);
             }
         }
     }
