@@ -46,7 +46,7 @@
             var gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DefaultSignIn)
                 .RequestEmail()
                 .RequestProfile()
-                .RequestIdToken(serverClientId: clientId)
+                .RequestIdToken(clientId)
                 .Build();
 
             ApiClient = new GoogleApiClient.Builder(UIRuntime.CurrentActivity)
