@@ -20,7 +20,7 @@
                     if (result.IsSuccess)
                     {
                         var account = result.SignInAccount;
-                        UserSignedIn.Raise(new Google.User
+                        UserSignedIn.Raise(new User
                         {
                             FamilyName = account.FamilyName,
                             GivenName = account.GivenName,
@@ -36,7 +36,7 @@
 
             var context = UIRuntime.CurrentActivity;
             var serverClientIdStr = context.Resources.GetIdentifier("server_client_id", "string", context.PackageName);
-            if(serverClientIdStr == 0)
+            if (serverClientIdStr == 0)
             {
                 Device.Log.Error("Google Client ID is not set on Android application. Please add server_client_id to the resource string file.");
                 return;
@@ -56,14 +56,20 @@
                      if (bundle != null) Device.Log.Message("Google connected");
                      else Device.Log.Error("Google connection filed");
                  }).Build();
+
+            ApiClient.Connect();
         }
 
-        public static Task SignIn()
+        public static async Task SignIn()
         {
             var signInIntent = Auth.GoogleSignInApi.GetSignInIntent(ApiClient);
+
+            if (ApiClient != null && ApiClient.IsConnected)
+                await ApiClient.ClearDefaultAccountAndReconnect();
+
             UIRuntime.CurrentActivity.StartActivityForResult(signInIntent, SIGNIN_REQUEST_CODE);
 
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
     }
 }
