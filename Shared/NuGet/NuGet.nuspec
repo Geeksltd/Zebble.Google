@@ -2,11 +2,11 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Zebble.Google</id>
-    <version>1.0.112</version>
+    <version>1.0.116</version>
     <title>Google SignIn</title>
     <projectUrl>https://github.com/Geeksltd/Zebble.Google</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/Geeksltd/Zebble.Google/master/Shared/NuGet/Icon.png</iconUrl>
-    <copyright>Copyright © 2019 Geeks Ltd - All rights reserved.</copyright>
+    <copyright>Copyright © 2020 Geeks Ltd - All rights reserved.</copyright>
     <description>Google SignIn for Zebble (Xamarin)</description>
     <authors>Geeks Ltd</authors>
     <owners>Geeks Ltd</owners>
