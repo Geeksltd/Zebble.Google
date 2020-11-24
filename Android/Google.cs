@@ -16,6 +16,12 @@
             {
                 if (args.Item1 == SIGNIN_REQUEST_CODE && args.Item2 == Android.App.Result.Ok)
                 {
+                    if(args.Item3 == null)
+                    {
+                        Device.Log.Error("[Zebble.Google] => The Google Play Services are not installed on your device, please make sure to installed them");
+                        return;
+                    }
+
                     var result = Auth.GoogleSignInApi.GetSignInResultFromIntent(args.Item3);
                     if (result.IsSuccess)
                     {
