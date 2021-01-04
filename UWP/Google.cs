@@ -1,4 +1,6 @@
-﻿namespace Zebble
+﻿using Olive;
+
+namespace Zebble
 {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -9,7 +11,6 @@
     using System.Threading.Tasks;
     using Windows.ApplicationModel.Activation;
     using Windows.Data.Json;
-    using Windows.Security.Authentication.Web;
     using Windows.Security.Cryptography;
     using Windows.Security.Cryptography.Core;
     using Windows.Storage;
@@ -24,7 +25,7 @@
 
         static string ClientId, RedirectURI = "zbl.oauth2:/oauth2redirect";
 
-        public static void Initilize(string clientId, string applicationBundle = null)
+        public static void Initialize(string clientId, string applicationBundle = null)
         {
             ClientId = clientId;
 
@@ -38,9 +39,9 @@
         {
             try
             {
-                if (string.IsNullOrEmpty(ClientId))
+                if (ClientId.IsEmpty())
                 {
-                    Device.Log.Error("Please set the ClientId by calling Initilize method first!");
+                    Device.Log.Error("Please set the ClientId by calling Initialize method first!");
                     return;
                 }
 
@@ -76,10 +77,10 @@
             return Base64UrlEncodeNoPadding(buffer);
         }
 
-        internal static IBuffer Sha256(string inputStirng)
+        internal static IBuffer Sha256(string inputString)
         {
             var sha = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha256);
-            var buff = CryptographicBuffer.ConvertStringToBinary(inputStirng, BinaryStringEncoding.Utf8);
+            var buff = CryptographicBuffer.ConvertStringToBinary(inputString, BinaryStringEncoding.Utf8);
             return sha.HashData(buff);
         }
 
@@ -150,8 +151,8 @@
                     Device.Log.Error("Authorization code exchange failed.");
                     return null;
                 }
-
-                JsonObject tokens = JsonObject.Parse(responseString);
+                
+                var tokens = JsonObject.Parse(responseString);
                 return tokens.GetNamedString("access_token");
             }
         }
@@ -164,12 +165,12 @@
             {
                 httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
-                var userinfoResponse = await httpClient.GetAsync(USER_INFO_END_POINT);
-                var userinfoResponseContent = await userinfoResponse.Content.ReadAsStringAsync();
+                var userInfoResponse = await httpClient.GetAsync(USER_INFO_END_POINT);
+                var userInfoResponseContent = await userInfoResponse.Content.ReadAsStringAsync();
 
-                var account = JsonConvert.DeserializeObject<JObject>(userinfoResponseContent);
+                var account = JsonConvert.DeserializeObject<JObject>(userInfoResponseContent);
                 var user = new User { Token = accessToken };
-                if (!userinfoResponseContent.Contains("error"))
+                if (!userInfoResponseContent.Contains("error"))
                 {
                     user.FamilyName = account["family_name"].Value<string>();
                     user.GivenName = account["given_name"].Value<string>();

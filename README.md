@@ -1,4 +1,4 @@
-[logo]: https://raw.githubusercontent.com/Geeksltd/Zebble.Google/master/Shared/NuGet/Icon.png "Zebble.Google"
+ï»¿[logo]: https://raw.githubusercontent.com/Geeksltd/Zebble.Google/master/icon.png "Zebble.Google"
 
 
 ## Zebble.Google
@@ -88,7 +88,7 @@ protected override async void OnCreate(Bundle bundle)
 ```
 
 Then you can use `Zebble.Google.SignIn()` method whereever you need to show the sign in dialog of google.
- 
+ï¿½
 #### iOS
 
 In IOS platform you need to create a credentials and use your clientId to sign in to the google account and get user information like below:
