@@ -6,6 +6,7 @@
     using System;
     using System.Threading.Tasks;
     using UIKit;
+    using Olive;
 
     public static partial class Google
     {
@@ -18,7 +19,7 @@
 
         static Google()
         {
-            UIRuntime.OnOpenUrlWithOptions.Handle((Tuple<UIApplication, NSUrl, NSDictionary> args) =>
+            UIRuntime.OnOpenUrlWithOptions.Handle((Tuple<UIApplication, NSUrl, string, NSDictionary> args) =>
             {
                 Auth.OnPageLoading(new Uri(args.Item2.AbsoluteString));
                 UI.DismissViewController(true, null);
@@ -27,14 +28,14 @@
 
         public static void Initilize(string clientId)
         {
-            if (string.IsNullOrEmpty(clientId))
+            if (clientId.IsEmpty())
             {
                 Device.Log.Error("Please set the ClientId by calling Initilize method first!");
                 return;
             }
 
             Auth = new Xamarin.Auth.OAuth2Authenticator(clientId, "", "openid profile email", new Uri(AUTH_END_POINT),
-            new Uri($"com.googleusercontent.apps.{clientId.Replace(".apps.googleusercontent.com", "")}:/oauth2redirect"), new Uri(TOKEN_END_POINT), null, true)
+            new Uri($"com.googleusercontent.apps.{clientId.Remove(".apps.googleusercontent.com")}:/oauth2redirect"), new Uri(TOKEN_END_POINT), null, true)
             { AllowCancel = true };
 
             Auth.Completed += async (s, args) =>
