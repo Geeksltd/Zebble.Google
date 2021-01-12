@@ -41,7 +41,7 @@ namespace Zebble
             {
                 if (ClientId.IsEmpty())
                 {
-                    Device.Log.Error("Please set the ClientId by calling Initialize method first!");
+                    Log.For(typeof(Google)).Error(null, "Please set the ClientId by calling Initialize method first!");
                     return;
                 }
 
@@ -67,7 +67,7 @@ namespace Zebble
             }
             catch (Exception ex)
             {
-                Device.Log.Error(ex.Message);
+                Log.For(typeof(Google)).Error(ex);
             }
         }
 
@@ -131,7 +131,7 @@ namespace Zebble
             }
             else
             {
-                Device.Log.Message(protocol.Uri.AbsoluteUri);
+                Log.For(typeof(Google)).Debug(protocol.Uri.AbsoluteUri);
                 await Task.CompletedTask;
             }
         }
@@ -148,7 +148,7 @@ namespace Zebble
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    Device.Log.Error("Authorization code exchange failed.");
+                    Log.For(typeof(Google)).Error(null, "Authorization code exchange failed.");
                     return null;
                 }
                 

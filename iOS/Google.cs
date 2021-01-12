@@ -30,7 +30,7 @@
         {
             if (clientId.IsEmpty())
             {
-                Device.Log.Error("Please set the ClientId by calling Initilize method first!");
+                Log.For(typeof(Google)).Error(null, "Please set the ClientId by calling Initilize method first!");
                 return;
             }
 
