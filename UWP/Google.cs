@@ -41,7 +41,7 @@ namespace Zebble
             {
                 if (ClientId.IsEmpty())
                 {
-                    Log.For(typeof(Google)).Error(null, "Please set the ClientId by calling Initialize method first!");
+                    Log.For(typeof(Google)).Error("Please set the ClientId by calling Initialize method first!");
                     return;
                 }
 
@@ -148,7 +148,7 @@ namespace Zebble
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    Log.For(typeof(Google)).Error(null, "Authorization code exchange failed.");
+                    Log.For(typeof(Google)).Error("Authorization code exchange failed.");
                     return null;
                 }
                 

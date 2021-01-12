@@ -19,7 +19,7 @@
                 {
                     if(args.Item3 == null)
                     {
-                        Log.For(typeof(Google)).Error(null, "[Zebble.Google] => The Google Play Services are not installed on your device, please make sure to installed them");
+                        Log.For(typeof(Google)).Error("[Zebble.Google] => The Google Play Services are not installed on your device, please make sure to installed them");
                         return;
                     }
 
@@ -45,7 +45,7 @@
             var serverClientIdStr = context.Resources.GetIdentifier("server_client_id", "string", context.PackageName);
             if (serverClientIdStr == 0)
             {
-                Log.For(typeof(Google)).Error(null, "Google Client ID is not set on Android application. Please add server_client_id to the resource string file.");
+                Log.For(typeof(Google)).Error("Google Client ID is not set on Android application. Please add server_client_id to the resource string file.");
                 return;
             }
 
@@ -61,7 +61,7 @@
                 .AddConnectionCallbacks(connectedCallback: bundle =>
                  {
                      if (bundle != null) Log.For(typeof(Google)).Debug("Google connected");
-                     else Log.For(typeof(Google)).Error(null, "Google connection filed");
+                     else Log.For(typeof(Google)).Error("Google connection filed");
                  }).Build();
 
             ApiClient.Connect();
