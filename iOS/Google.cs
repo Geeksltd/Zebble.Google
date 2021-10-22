@@ -21,6 +21,7 @@
         {
             UIRuntime.OnOpenUrlWithOptions.Handle((Tuple<UIApplication, NSUrl, string, NSDictionary> args) =>
             {
+                if (args?.Item2 is null) return;
                 Auth.OnPageLoading(new Uri(args.Item2.AbsoluteString));
                 UI.DismissViewController(true, null);
             });
