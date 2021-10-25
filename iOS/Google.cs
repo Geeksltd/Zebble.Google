@@ -22,8 +22,8 @@
             UIRuntime.OnOpenUrlWithOptions.Handle((Tuple<UIApplication, NSUrl, string, NSDictionary> args) =>
             {
                 if (args?.Item2 is null) return;
-                Auth.OnPageLoading(new Uri(args.Item2.AbsoluteString));
-                UI.DismissViewController(true, null);
+                Auth?.OnPageLoading(new Uri(args.Item2.AbsoluteString));
+                UI?.DismissViewController(animated: true, null);
             });
         }
 
@@ -35,8 +35,10 @@
                 return;
             }
 
-            Auth = new Xamarin.Auth.OAuth2Authenticator(clientId, "", "openid profile email", new Uri(AUTH_END_POINT),
-            new Uri($"com.googleusercontent.apps.{clientId.Remove(".apps.googleusercontent.com")}:/oauth2redirect"), new Uri(TOKEN_END_POINT), null, true)
+            Auth = new Xamarin.Auth.OAuth2Authenticator(
+                clientId, "", "openid profile email", new Uri(AUTH_END_POINT),
+                new Uri($"com.googleusercontent.apps.{clientId.Remove(".apps.googleusercontent.com")}:/oauth2redirect"),
+                new Uri(TOKEN_END_POINT), null, true)
             { AllowCancel = true };
 
             Auth.Completed += async (s, args) =>
@@ -68,7 +70,7 @@
                 if (UIRuntime.NativeRootScreen is UIViewController controller)
                 {
                     UI = Auth.GetUI();
-                    controller.PresentViewController(UI, true, null);
+                    controller.PresentViewController(UI, animated: true, null);
                 }
             });
         }
