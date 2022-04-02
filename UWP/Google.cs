@@ -104,7 +104,8 @@ namespace Zebble
             {
                 var authorizationResponse = protocol.Uri;
                 var queryString = authorizationResponse.Query;
-
+                if (string.IsNullOrEmpty(queryString))
+                    return;
                 var queryStringParams = queryString.Substring(1).Split('&')
                     .ToDictionary(c => c.Split('=')[0], c => Uri.UnescapeDataString(c.Split('=')[1]));
 
@@ -151,7 +152,7 @@ namespace Zebble
                     Log.For(typeof(Google)).Error("Authorization code exchange failed.");
                     return null;
                 }
-                
+
                 var tokens = JsonObject.Parse(responseString);
                 return tokens.GetNamedString("access_token");
             }
