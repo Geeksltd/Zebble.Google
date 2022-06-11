@@ -63,7 +63,12 @@ namespace Zebble
                     codeChallenge,
                     CODE_CHALLENGE_METHOD);
 
-                await Windows.System.Launcher.LaunchUriAsync(new Uri(authorizationRequest));
+                // Windows Launch URL must be called from the UI thread, otherwise it won't work.
+                await Thread.UI.Run(async () =>
+                {
+                    await Windows.System.Launcher.LaunchUriAsync(new Uri(authorizationRequest));
+                });
+                
             }
             catch (Exception ex)
             {
