@@ -1,7 +1,6 @@
 ﻿namespace Zebble
 {
     using Android.Gms.Auth.Api.SignIn;
-    using Android.Gms.Common.Apis;
     using System.Threading.Tasks;
     using Olive;
     using System;
@@ -28,9 +27,12 @@
             {
                 var signInAccount = await Client.SilentSignInAsync();
 
-                if (TryToUseSignInAccount(signInAccount)) return;
+                if (await TryToUseSignInAccount(signInAccount)) return;
             }
-            catch (Exception ex) { Logger.Error(ex, "Faild to log in silently."); }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to log in silently.");
+            }
 
             InitiateSignIn();
         }
@@ -55,32 +57,60 @@
         {
             if (args.Item1 != SIGNIN_REQUEST_CODE) return;
 
-            var signInAccount = await GoogleSignIn.GetSignedInAccountFromIntentAsync(args.Item3);
-            TryToUseSignInAccount(signInAccount);
+            try
+            {
+                var signInAccount = await GoogleSignIn.GetSignedInAccountFromIntentAsync(args.Item3);
+
+                await TryToUseSignInAccount(signInAccount);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to log in.");
+            }
         }
 
         static void InitiateSignIn()
         {
-            var signInIntent = Client.SignInIntent;
-            UIRuntime.CurrentActivity.StartActivityForResult(signInIntent, SIGNIN_REQUEST_CODE);
+            try
+            {
+                var signInIntent = Client.SignInIntent;
+
+                UIRuntime.CurrentActivity.StartActivityForResult(signInIntent, SIGNIN_REQUEST_CODE);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to init sign in.");
+            }
         }
 
-        static bool TryToUseSignInAccount(GoogleSignInAccount account)
+        static async Task<bool> TryToUseSignInAccount(GoogleSignInAccount account)
         {
-            if (account == null) return false;
-
-            UserSignedIn.Raise(new User
+            if (account == null)
             {
-                FamilyName = account.FamilyName,
-                GivenName = account.GivenName,
-                Id = account.Id,
-                Name = account.DisplayName,
-                Picture = account.PhotoUrl?.ToString(),
-                Email = account.Email,
-                Token = account.IdToken
-            });
+                Logger.Warning("The passed in account is null.");
+                return false;
+            }
 
-            return true;
+            try
+            {
+                await UserSignedIn.Raise(new User
+                {
+                    FamilyName = account.FamilyName,
+                    GivenName = account.GivenName,
+                    Id = account.Id,
+                    Name = account.DisplayName,
+                    Picture = account.PhotoUrl?.ToString(),
+                    Email = account.Email,
+                    Token = account.IdToken
+                });
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to raise the event.");
+                return false;
+            }
         }
     }
 }
