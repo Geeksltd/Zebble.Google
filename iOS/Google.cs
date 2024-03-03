@@ -69,7 +69,12 @@
             {
                 if (UIRuntime.NativeRootScreen is UIViewController controller)
                 {
+#if XAMARINIOS
                     UI = Auth.GetUI();
+#else
+                    UI = Auth.PlatformUIMethod() as UIViewController;
+#endif
+
                     controller.PresentViewController(UI, animated: true, null);
                 }
             });
