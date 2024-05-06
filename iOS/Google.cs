@@ -1,83 +1,72 @@
 ﻿namespace Zebble
 {
     using Foundation;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Threading.Tasks;
     using UIKit;
     using Olive;
+    using GSignIn = global::Google.SignIn.SignIn;
 
     public static partial class Google
     {
-        const string AUTH_END_POINT = "https://accounts.google.com/o/oauth2/v2/auth";
-        const string TOKEN_END_POINT = "https://www.googleapis.com/oauth2/v4/token";
-        const string USER_INFO_END_POINT = "https://www.googleapis.com/oauth2/v3/userinfo";
-
-        internal static Xamarin.Auth.OAuth2Authenticator Auth;
-        internal static UIViewController UI;
-
         static Google()
         {
+            GSignIn.SharedInstance.Scopes = [
+                "https://www.googleapis.com/auth/userinfo.email",
+                "https://www.googleapis.com/auth/userinfo.profile"
+            ];
+
             UIRuntime.OnOpenUrlWithOptions.Handle((Tuple<UIApplication, NSUrl, string, NSDictionary> args) =>
             {
                 if (args?.Item2 is null) return;
-                Auth?.OnPageLoading(new Uri(args.Item2.AbsoluteString));
-                UI?.DismissViewController(animated: true, null);
+                GSignIn.SharedInstance.HandleUrl(new Uri(args.Item2.AbsoluteString));
             });
         }
 
-        public static void Initilize(string clientId)
+        public static void Initialize(string clientId)
         {
             if (clientId.IsEmpty())
             {
-                Log.For(typeof(Google)).Error("Please set the ClientId by calling Initilize method first!");
+                Log.For(typeof(Google)).Error("Please set the ClientId by calling Initialize method first!");
                 return;
             }
 
-            Auth = new Xamarin.Auth.OAuth2Authenticator(
-                clientId, "", "openid profile email", new Uri(AUTH_END_POINT),
-                new Uri($"com.googleusercontent.apps.{clientId.Remove(".apps.googleusercontent.com")}:/oauth2redirect"),
-                new Uri(TOKEN_END_POINT), null, true)
-            { AllowCancel = true };
+            GSignIn.SharedInstance.ClientId = clientId;
 
-            Auth.Completed += async (s, args) =>
+            GSignIn.SharedInstance.SignedIn += async (s, args) =>
             {
-                if (args.IsAuthenticated)
+                if (args.Error != null)
                 {
-                    var request = new Xamarin.Auth.OAuth2Request("GET", new Uri(USER_INFO_END_POINT), null, args.Account);
-                    var response = await request.GetResponseAsync();
-                    var accountStr = await response.GetResponseTextAsync();
-                    var account = JsonConvert.DeserializeObject<JObject>(accountStr);
-                    await UserSignedIn.Raise(new Google.User
-                    {
-                        FamilyName = account["family_name"].Value<string>(),
-                        GivenName = account["given_name"].Value<string>(),
-                        Email = account["email"].Value<string>(),
-                        Name = account["name"].Value<string>(),
-                        Id = account["sub"].Value<string>(),
-                        Picture = account["picture"].Value<string>(),
-                        Token = args.Account.Properties["id_token"] ?? ""
-                    });
+                    Log.For(typeof(Google)).Error($"Error - {args.Error.LocalizedDescription} - {args.Error.Code}");
+                    return;
                 }
+
+                var token = "";
+                GSignIn.SharedInstance.CurrentUser.Authentication.GetTokens((auth, error) =>
+                {
+                    if (error == null) token = auth.IdToken;
+                });
+
+                await UserSignedIn.Raise(new User
+                {
+                    Id = args.User.UserId,
+                    Email = args.User.Profile.Email,
+                    Name = args.User.Profile.Name,
+                    GivenName = args.User.Profile.GivenName,
+                    FamilyName = args.User.Profile.FamilyName,
+                    Picture = args.User.Profile.HasImage ? args.User.Profile.GetImageUrl(512)?.AbsoluteString : null,
+                    Token = token,
+                });
             };
         }
 
-        public static Task SignIn()
+        public static Task SignIn() => Thread.UI.Run(() =>
         {
-            return Thread.UI.Run(() =>
+            if (UIRuntime.NativeRootScreen is UIViewController controller)
             {
-                if (UIRuntime.NativeRootScreen is UIViewController controller)
-                {
-#if XAMARINIOS
-                    UI = Auth.GetUI();
-#else
-                    UI = Auth.PlatformUIMethod() as UIViewController;
-#endif
-
-                    controller.PresentViewController(UI, animated: true, null);
-                }
-            });
-        }
+                GSignIn.SharedInstance.PresentingViewController = controller;
+                GSignIn.SharedInstance.SignInUser();
+            }
+        });
     }
 }

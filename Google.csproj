@@ -6,7 +6,7 @@
     <RootNamespace>Zebble</RootNamespace>
     <PackageId>Zebble.Google</PackageId>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <Version>2.0.0.0</Version>
+    <Version>2.0.1.0</Version>
     <PackOnBuild>true</PackOnBuild>
     <NeutralLanguage>en</NeutralLanguage>
     <DefineConstants>$(DefineConstants)</DefineConstants>
@@ -52,11 +52,11 @@
     <Compile Include="UWP\**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition=" $(DefineConstants.Contains('ANDROID')) ">
-    <PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="120.7.0.2" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="120.7.0.3" />
     <Compile Include="Android\**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition=" $(DefineConstants.Contains('IOS')) ">
-    <PackageReference Include="Xamarin.Auth" Version="1.7.0" />
+    <PackageReference Include="Xamarin.Google.iOS.SignIn" Version="5.0.2.4" />
     <Compile Include="iOS\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -66,7 +66,7 @@
     <None Remove="Zebble-LicenseAgreement.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Zebble" Version="5.0.0" />
+    <PackageReference Include="Zebble" Version="5.0.22" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="update-local-nuget-cache $(TargetDir)" />
