@@ -9,6 +9,8 @@
 
     public static partial class Google
     {
+        static global::Google.SignIn.ISignInDelegate Delegate = new GoogleSignInDelegate();
+
         static Google()
         {
             GSignIn.SharedInstance.Scopes = [
@@ -18,7 +20,7 @@
 
             UIRuntime.OnOpenUrlWithOptions.Handle((Tuple<UIApplication, NSUrl, string, NSDictionary> args) =>
             {
-                if (args?.Item2 is null) return;
+                if (args is null) return;
                 GSignIn.SharedInstance.HandleUrl(new Uri(args.Item2.AbsoluteString));
             });
         }
@@ -32,32 +34,7 @@
             }
 
             GSignIn.SharedInstance.ClientId = clientId;
-
-            GSignIn.SharedInstance.SignedIn += async (s, args) =>
-            {
-                if (args.Error != null)
-                {
-                    Log.For(typeof(Google)).Error($"Error - {args.Error.LocalizedDescription} - {args.Error.Code}");
-                    return;
-                }
-
-                var token = "";
-                GSignIn.SharedInstance.CurrentUser.Authentication.GetTokens((auth, error) =>
-                {
-                    if (error == null) token = auth.IdToken;
-                });
-
-                await UserSignedIn.Raise(new User
-                {
-                    Id = args.User.UserId,
-                    Email = args.User.Profile.Email,
-                    Name = args.User.Profile.Name,
-                    GivenName = args.User.Profile.GivenName,
-                    FamilyName = args.User.Profile.FamilyName,
-                    Picture = args.User.Profile.HasImage ? args.User.Profile.GetImageUrl(512)?.AbsoluteString : null,
-                    Token = token,
-                });
-            };
+            GSignIn.SharedInstance.Delegate = Delegate;
         }
 
         public static Task SignIn() => Thread.UI.Run(() =>
@@ -68,5 +45,37 @@
                 GSignIn.SharedInstance.SignInUser();
             }
         });
+
+        class GoogleSignInDelegate : NSObject, global::Google.SignIn.ISignInDelegate
+        {
+            public void DidSignIn(GSignIn signIn, global::Google.SignIn.GoogleUser user, NSError error)
+            {
+                if (error != null)
+                {
+                    Log.For(typeof(Google)).Error($"Sign in failed. {error.LocalizedDescription} ({error.Code})");
+                    return;
+                }
+
+                GSignIn.SharedInstance.CurrentUser.Authentication.GetTokens((auth, error) =>
+                {
+                    if (error != null)
+                    {
+                        Log.For(typeof(Google)).Error($"GetTokens failed. {error.LocalizedDescription} ({error.Code})");
+                        return;
+                    }
+
+                    UserSignedIn.Raise(new User
+                    {
+                        Id = user.UserId,
+                        Email = user.Profile.Email,
+                        Name = user.Profile.Name,
+                        GivenName = user.Profile.GivenName,
+                        FamilyName = user.Profile.FamilyName,
+                        Picture = user.Profile.HasImage ? user.Profile.GetImageUrl(512)?.AbsoluteString : null,
+                        Token = auth.IdToken,
+                    });
+                });
+            }
+        }
     }
 }
