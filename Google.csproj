@@ -6,7 +6,7 @@
     <RootNamespace>Zebble</RootNamespace>
     <PackageId>Zebble.Google</PackageId>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <Version>2.1.0.0</Version>
+    <Version>2.1.1.0</Version>
     <PackOnBuild>true</PackOnBuild>
     <NeutralLanguage>en</NeutralLanguage>
     <DefineConstants>$(DefineConstants)</DefineConstants>
@@ -53,11 +53,12 @@
     <Compile Include="WinUI\**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition=" $(DefineConstants.Contains('ANDROID')) ">
-    <PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="121.2.0.2" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="121.3.0" />
     <Compile Include="Android\**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition=" $(DefineConstants.Contains('IOS')) ">
-    <PackageReference Include="Xamarin.Google.iOS.SignIn" Version="5.0.2.4" />
+    <PackageReference Include="AdamE.Google.iOS.SignIn" Version="7.0.0" />
+    <PackageReference Include="AdamE.Google.iOS.GTMSessionFetcher" Version="3.5.0" />
     <Compile Include="iOS\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -67,7 +68,15 @@
     <None Remove="Zebble-LicenseAgreement.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Zebble" Version="5.1.2" />
+    <PackageReference Include="Zebble" Version="5.1.5" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process">
+      <Version>2.8.7.1</Version>
+    </PackageReference>
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime">
+      <Version>2.8.7.1</Version>
+    </PackageReference>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Running)'=='local'">
     <Exec Command="update-local-nuget-cache $(TargetDir)" />
