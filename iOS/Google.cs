@@ -6,22 +6,24 @@
     using UIKit;
     using Olive;
     using GSignIn = global::Google.SignIn.SignIn;
+    using GConfiguration = global::Google.SignIn.Configuration;
 
     public static partial class Google
     {
-        static global::Google.SignIn.ISignInDelegate Delegate = new GoogleSignInDelegate();
+        static GConfiguration Configuration;
 
         static Google()
         {
-            GSignIn.SharedInstance.Scopes = [
+            var scopes = new string[]
+            {
                 "https://www.googleapis.com/auth/userinfo.email",
                 "https://www.googleapis.com/auth/userinfo.profile"
-            ];
+            };
 
             UIRuntime.OnOpenUrlWithOptions.Handle((Tuple<UIApplication, NSUrl, string, NSDictionary> args) =>
             {
                 if (args is null) return;
-                GSignIn.SharedInstance.HandleUrl(new Uri(args.Item2.AbsoluteString));
+                GSignIn.SharedInstance.HandleUrl(args.Item2);
             });
         }
 
@@ -33,49 +35,44 @@
                 return;
             }
 
-            GSignIn.SharedInstance.ClientId = clientId;
-            GSignIn.SharedInstance.Delegate = Delegate;
+            Configuration = new GConfiguration(clientId);
+            GSignIn.SharedInstance.Configuration = Configuration;
         }
 
         public static Task SignIn() => Thread.UI.Run(() =>
         {
             if (UIRuntime.NativeRootScreen is UIViewController controller)
             {
-                GSignIn.SharedInstance.PresentingViewController = controller;
-                GSignIn.SharedInstance.SignInUser();
-            }
-        });
-
-        class GoogleSignInDelegate : NSObject, global::Google.SignIn.ISignInDelegate
-        {
-            public void DidSignIn(GSignIn signIn, global::Google.SignIn.GoogleUser user, NSError error)
-            {
-                if (error != null)
-                {
-                    Log.For(typeof(Google)).Error($"Sign in failed. {error.LocalizedDescription} ({error.Code})");
-                    return;
-                }
-
-                GSignIn.SharedInstance.CurrentUser.Authentication.GetTokens((auth, error) =>
+                GSignIn.SharedInstance.SignInWithPresentingViewController(controller, (result, error) =>
                 {
                     if (error != null)
                     {
-                        Log.For(typeof(Google)).Error($"GetTokens failed. {error.LocalizedDescription} ({error.Code})");
+                        Log.For(typeof(Google)).Error($"Sign in failed. {error.LocalizedDescription} ({error.Code})");
                         return;
                     }
 
-                    UserSignedIn.Raise(new User
+                    var user = result.User;
+                    user.RefreshTokensIfNeededWithCompletion((userResult, authError) =>
                     {
-                        Id = user.UserId,
-                        Email = user.Profile.Email,
-                        Name = user.Profile.Name,
-                        GivenName = user.Profile.GivenName,
-                        FamilyName = user.Profile.FamilyName,
-                        Picture = user.Profile.HasImage ? user.Profile.GetImageUrl(512)?.AbsoluteString : null,
-                        Token = auth.IdToken,
+                        if (authError != null)
+                        {
+                            Log.For(typeof(Google)).Error($"GetTokens failed. {authError.LocalizedDescription} ({authError.Code})");
+                            return;
+                        }
+
+                        UserSignedIn.Raise(new User
+                        {
+                            Id = user.UserId,
+                            Email = user.Profile.Email,
+                            Name = user.Profile.Name,
+                            GivenName = user.Profile.GivenName,
+                            FamilyName = user.Profile.FamilyName,
+                            Picture = user.Profile.HasImage ? user.Profile.GetImageUrl(512)?.AbsoluteString : null,
+                            Token = user.IdToken.TokenString,
+                        });
                     });
                 });
             }
-        }
+        });
     }
 }
