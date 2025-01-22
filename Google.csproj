@@ -6,7 +6,7 @@
     <RootNamespace>Zebble</RootNamespace>
     <PackageId>Zebble.Google</PackageId>
     <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <Version>2.1.1.0</Version>
+    <Version>2.1.2.0</Version>
     <PackOnBuild>true</PackOnBuild>
     <NeutralLanguage>en</NeutralLanguage>
     <DefineConstants>$(DefineConstants)</DefineConstants>
@@ -53,12 +53,12 @@
     <Compile Include="WinUI\**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition=" $(DefineConstants.Contains('ANDROID')) ">
-    <PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="121.3.0" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Auth" Version="121.3.0.1" />
     <Compile Include="Android\**\*.cs" />
   </ItemGroup>
   <ItemGroup Condition=" $(DefineConstants.Contains('IOS')) ">
-    <PackageReference Include="AdamE.Google.iOS.SignIn" Version="7.0.0" />
-    <PackageReference Include="AdamE.Google.iOS.GTMSessionFetcher" Version="3.5.0" />
+    <PackageReference Include="AdamE.Google.iOS.SignIn" Version="8.0.0" />
+    <PackageReference Include="AdamE.Google.iOS.GTMSessionFetcher" Version="4.1.0" />
     <Compile Include="iOS\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -72,10 +72,10 @@
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process">
-      <Version>2.8.7.1</Version>
+      <Version>2.8.7.2</Version>
     </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.Lifecycle.Runtime">
-      <Version>2.8.7.1</Version>
+      <Version>2.8.7.2</Version>
     </PackageReference>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Running)'=='local'">
